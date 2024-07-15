@@ -8,30 +8,38 @@ namespace WebApi.Services;
 
 public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
 {
-    private readonly IMongoRepository<ConsultaResponseDto> _mongoConsultaOnline;
+    private readonly IMongoRepository<ConsultaResponseDto> _mongoConsulta;
     private readonly IDadosPublicosService _dadosPublicosService;
 
-    public ConsumerOnlineService(IDadosPublicosService dadosPublicosService, IMongoRepository<ConsultaResponseDto> mongoConsultaOnline)
+    public ConsumerOnlineService(IDadosPublicosService dadosPublicosService, IMongoRepository<ConsultaResponseDto> mongoConsulta)
     {
         _dadosPublicosService = dadosPublicosService;
-        _mongoConsultaOnline = mongoConsultaOnline;
+        _mongoConsulta = mongoConsulta;
     }
 
     public async Task Consume(ConsumeContext<ConsultaOnlineDto> context)
     {
+        DateTime dataInicio = DateTime.UtcNow;
         var result = await _dadosPublicosService.GetDadosPrincipaisAsync(context.Message.documento);
         var random = new Random();
-        await Task.Delay(random.Next(5) * 1000);
+        await Task.Delay(random.Next(8) * 1000);
         Console.WriteLine("Mensagem processada");
         
         if (result.Success)
         {
+            DateTime dataFinal = DateTime.UtcNow;
             var resposta = new Resposta<ConsultaResponseDto>
             {
+                perfil = context.Message.perfil,
+                lote = context.Message.lote,
+                quantidade = context.Message.quantidade,
+                Date = context.Message.dataCadastro,
+                dataInicio = dataInicio,
+                dataFinal = dataFinal,
                 DadosRetorno = result
             };
     
-            await _mongoConsultaOnline.CreateAsync(resposta);
+            await _mongoConsulta.CreateAsync(resposta);
         }
 
         await context.RespondAsync(result);

@@ -3,19 +3,24 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Dtos;
 using Application.Dtos.Consulta;
 using Application.Interfaces;
 using Domain.Model;
+using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using Newtonsoft.Json;
 
 public class DadosPublicosService : IDadosPublicosService
 {
+    private readonly IMongoRepository<ConsultaResponseDto> _mongoConsulta;
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl;
     private string _token;
 
-    public DadosPublicosService()
+    public DadosPublicosService(IMongoRepository<ConsultaResponseDto> mongoConsulta)
     {
+        _mongoConsulta = mongoConsulta;
         _httpClient = new HttpClient();
         _baseUrl = "https://qa-dados-publicos.deps.com.br/api/v1";
     }
@@ -61,5 +66,20 @@ public class DadosPublicosService : IDadosPublicosService
         
         return JsonConvert.DeserializeObject<ConsultaResponseDto>(await response.Content.ReadAsStringAsync());
         
+    }
+    
+    public async Task<Pagina<DadosHistorico>> GetHistorico(int pageNumber, int pageSize)
+    {
+        var totalCount = await _mongoConsulta.GetTotalBatchCountAsync();
+        
+        var results = await _mongoConsulta.GetAggregatedResultsAsync(pageNumber, pageSize);
+
+        return new Pagina<DadosHistorico>
+        {
+            Items = results,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 }

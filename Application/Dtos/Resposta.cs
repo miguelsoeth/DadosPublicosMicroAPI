@@ -4,14 +4,16 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Application.Dtos;
 
-public class Resposta<T> where T : class
+public class  Resposta<T> where T : class
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string? _id { get; set; }
-    public string? Mensagem { get; set; }
-    public bool DadosHistorico { get; set; } = false;
-    public DateTime Date { get; set; } = DateTime.Now;
-    public string Documento { get; set; }
-    public T? DadosRetorno { get; set; }
+    public string? perfil { get; set; }
+    public string? lote { get; set; }
+    public int? quantidade { get; set; }
+    public DateTime? Date { get; set; }
+    public DateTime? dataInicio { get; set; }
+    public DateTime? dataFinal { get; set; }
+    public T DadosRetorno { get; set; }
 }

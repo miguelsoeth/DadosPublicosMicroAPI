@@ -2,6 +2,7 @@ using Application.Dtos;
 using Application.Dtos.Consulta;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace DadosPublicosMicroAPI.Controllers;
 
@@ -9,12 +10,10 @@ namespace DadosPublicosMicroAPI.Controllers;
 [Route("api/dados-publicos")]
 public class DadosPublicosController : ControllerBase
 {
-    private readonly IMongoRepository<ConsultaOnlineDto> _mongoConsultaOnline;
     private readonly IDadosPublicosService _dadosPublicosService;
     
-    public DadosPublicosController(IMongoRepository<ConsultaOnlineDto> mongoConsultaOnline, IDadosPublicosService dadosPublicosService)
+    public DadosPublicosController(IDadosPublicosService dadosPublicosService)
     {
-        _mongoConsultaOnline = mongoConsultaOnline;
         _dadosPublicosService = dadosPublicosService;
     }
 
@@ -23,6 +22,14 @@ public class DadosPublicosController : ControllerBase
     {
         var result = await _dadosPublicosService.GetDadosPrincipaisAsync(consulta.documento);
         return Ok(result);
+        //return Ok(ObjectId.GenerateNewId().ToString());
+    }
+    
+    [HttpGet]
+    public async Task<Pagina<DadosHistorico>> HistoricoPesquisas([FromQuery]int pageNumber, [FromQuery]int pageSize)
+    {
+        var result = await _dadosPublicosService.GetHistorico(pageNumber, pageSize);
+        return result;
     }
 }
 
