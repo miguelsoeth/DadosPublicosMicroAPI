@@ -26,11 +26,20 @@ public class DadosPublicosController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<Pagina<DadosHistorico>> HistoricoPesquisas([FromQuery]int pageNumber, [FromQuery]int pageSize)
+    public async Task<Pagina<DadosHistoricoLote>> HistoricoPesquisasLote([FromQuery]int pageNumber, [FromQuery]int pageSize)
     {
-        var result = await _dadosPublicosService.GetHistorico(pageNumber, pageSize);
+        var result = await _dadosPublicosService.GetHistoricoLote(pageNumber, pageSize);
         return result;
     }
+    
+    
+    [HttpGet]
+    public async Task<Pagina<DadosHistorico>> HistoricoPesquisa([FromQuery]int pageNumber, [FromQuery]int pageSize)
+    {
+        var result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize);
+        return result;
+    }
+    
 }
 
 #region ALPHA 0.0.1

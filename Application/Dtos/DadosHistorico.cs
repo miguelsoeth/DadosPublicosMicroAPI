@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
-
 namespace Application.Dtos;
+
 public class DadosHistorico
 {
-    public string Id { get; set; }
-    public string Profile { get; set; }
-    public DateTime RegisterDate { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public int Quantity { get; set; }
-    public int Concluded { get; set; }
-    public string Status { get; set; }
+    public string _id { get; set; }
+    public string usuario { get; set; }
+    public DateTime Date { get; set; }
+    public string Cnpj { get; set; }
+    public string RazaoSocial { get; set; }
 }
-
-

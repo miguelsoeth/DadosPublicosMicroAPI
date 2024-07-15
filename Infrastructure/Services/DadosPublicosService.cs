@@ -68,11 +68,26 @@ public class DadosPublicosService : IDadosPublicosService
         
     }
     
-    public async Task<Pagina<DadosHistorico>> GetHistorico(int pageNumber, int pageSize)
+    public async Task<Pagina<DadosHistoricoLote>> GetHistoricoLote(int pageNumber, int pageSize)
     {
         var totalCount = await _mongoConsulta.GetTotalBatchCountAsync();
         
         var results = await _mongoConsulta.GetAggregatedResultsAsync(pageNumber, pageSize);
+
+        return new Pagina<DadosHistoricoLote>
+        {
+            Items = results,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<Pagina<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize)
+    {
+        var totalCount = await _mongoConsulta.GetTotalCountAsync();
+        
+        var results = await _mongoConsulta.GetHistoricoPesquisa();
 
         return new Pagina<DadosHistorico>
         {

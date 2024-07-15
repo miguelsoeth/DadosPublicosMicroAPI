@@ -33,7 +33,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
             .FirstOrDefaultAsync();
     }
     
-    public async Task<List<DadosHistorico>> GetAggregatedResultsAsync(int pageNumber, int pageSize)
+    public async Task<List<DadosHistoricoLote>> GetAggregatedResultsAsync(int pageNumber, int pageSize)
     {
         var pipeline = new[]
         {
@@ -54,7 +54,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
                 { "then", "Processando" },
                 { "else", "Processado" }
             }))),
-            new BsonDocument("$sort", new BsonDocument("Date", -1)),
+            new BsonDocument("$sort", new BsonDocument("registerDate", -1)),
             new BsonDocument("$skip", (pageNumber - 1) * pageSize),
             new BsonDocument("$limit", pageSize)
         };
@@ -65,7 +65,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
         var result = await cursor.ToListAsync();
 
         // Assuming that DadosHistorico class has properties matching the fields in the pipeline result
-        var aggregatedResults = result.Select(doc => new DadosHistorico
+        var aggregatedResults = result.Select(doc => new DadosHistoricoLote
         {
             Id = doc["_id"].AsString,
             Profile = doc["profile"].AsString,
@@ -104,5 +104,12 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
         }
 
         return result["count"].ToInt64();
+    }
+    
+    public async Task<long> GetTotalCountAsync()
+    {
+        var filter = Builders<Resposta<T>>.Filter.Empty;
+        var totalCount = await _collection.CountDocumentsAsync(filter);
+        return totalCount;
     }
 }

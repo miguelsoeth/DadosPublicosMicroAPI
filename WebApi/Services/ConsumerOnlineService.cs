@@ -22,7 +22,7 @@ public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
         DateTime dataInicio = DateTime.UtcNow;
         var result = await _dadosPublicosService.GetDadosPrincipaisAsync(context.Message.documento);
         var random = new Random();
-        await Task.Delay(random.Next(8) * 1000);
+        await Task.Delay(random.Next(5) * 1000);
         Console.WriteLine("Mensagem processada");
         
         if (result.Success)
@@ -31,6 +31,7 @@ public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
             var resposta = new Resposta<ConsultaResponseDto>
             {
                 perfil = context.Message.perfil,
+                usuario = context.Message.usuario,
                 lote = context.Message.lote,
                 quantidade = context.Message.quantidade,
                 Date = context.Message.dataCadastro,
