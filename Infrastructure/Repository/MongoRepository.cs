@@ -33,7 +33,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
             .FirstOrDefaultAsync();
     }
     
-    public async Task<List<DadosHistoricoLote>> GetAggregatedResultsAsync(int pageNumber, int pageSize)
+    public async Task<List<DadosHistoricoLote>> GetHistoricoLoteAsync(int pageNumber, int pageSize)
     {
         var pipeline = new[]
         {
@@ -80,6 +80,57 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
         return aggregatedResults;
     }
 
+    public async Task<List<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize, string usuarioFilter, string cnpjFilter)
+    {
+        var usuarioRegex = usuarioFilter != null ? new BsonRegularExpression(usuarioFilter, "i") : new BsonRegularExpression("");
+        
+        // Define the match stage based on provided filters
+        var matchStage = new BsonDocument("$match", new BsonDocument
+        {
+            { "usuario", new BsonDocument("$regex", usuarioRegex) },
+            { "DadosRetorno.Data.Cnpj", new BsonDocument("$regex", cnpjFilter ?? "") }
+        });
+        var pipeline = new[]
+        {
+            matchStage,
+            new BsonDocument("$project", new BsonDocument
+            {
+                { "_id", 1 },
+                { "Date", 1 },
+                { "Cnpj", "$DadosRetorno.Data.Cnpj" },
+                { "RazaoSocial", "$DadosRetorno.Data.RazaoSocial" },
+                { "usuario", 1 }
+            }),
+            new BsonDocument("$sort", new BsonDocument("Date", -1)),
+            new BsonDocument("$skip", (pageNumber - 1) * pageSize),
+            new BsonDocument("$limit", pageSize)
+        };
+
+        var aggregateOptions = new AggregateOptions { AllowDiskUse = true }; // Ensure large datasets can be processed
+
+        var cursor = await _collection.AggregateAsync<BsonDocument>(pipeline, aggregateOptions);
+        var result = await cursor.ToListAsync();
+
+        // Assuming that DadosHistorico class has properties matching the fields in the pipeline result
+        var aggregatedResults = result.Select(doc => new DadosHistorico
+        {
+            _id = doc["_id"].AsObjectId.ToString(),
+            usuario = doc["usuario"].AsString,
+            Date = doc["Date"].ToUniversalTime(),
+            Cnpj = doc["Cnpj"].AsString,
+            RazaoSocial = doc["RazaoSocial"].AsString,
+        }).ToList();
+
+        return aggregatedResults;
+    }
+    
+    public async Task<Resposta<T>> GetPesquisa(string id)
+    {
+        var result = await _collection.Find(x => x._id == id).FirstOrDefaultAsync();
+
+        return result;
+    }
+
     public async Task<long> GetTotalBatchCountAsync()
     {
         var pipeline = new[]
@@ -106,10 +157,27 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
         return result["count"].ToInt64();
     }
     
-    public async Task<long> GetTotalCountAsync()
+    public async Task<long> GetTotalCountAsync( string usuarioFilter, string cnpjFilter)
     {
-        var filter = Builders<Resposta<T>>.Filter.Empty;
-        var totalCount = await _collection.CountDocumentsAsync(filter);
+        var usuarioRegex = usuarioFilter != null ? new BsonRegularExpression(usuarioFilter, "i") : new BsonRegularExpression("");
+
+        // Define the match stage based on provided filters
+        var matchStage = new BsonDocument("$match", new BsonDocument
+        {
+            { "usuario", new BsonDocument("$regex", usuarioRegex) },
+            { "DadosRetorno.Data.Cnpj", new BsonDocument("$regex", cnpjFilter ?? "") }
+        });
+        
+        var totalCountPipeline = new[]
+        {
+            matchStage,
+            new BsonDocument("$count", "total")
+        };
+        
+        var aggregateOptions = new AggregateOptions { AllowDiskUse = true };
+        var totalCountCursor = await _collection.AggregateAsync<BsonDocument>(totalCountPipeline, aggregateOptions);
+        var totalCountResult = await totalCountCursor.FirstOrDefaultAsync();
+        var totalCount = totalCountResult != null ? totalCountResult.GetValue("total", 0).ToInt64() : 0;
         return totalCount;
     }
 }

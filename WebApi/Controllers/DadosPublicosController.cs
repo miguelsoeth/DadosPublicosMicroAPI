@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Application.Dtos;
 using Application.Dtos.Consulta;
 using Application.Interfaces;
@@ -17,7 +18,7 @@ public class DadosPublicosController : ControllerBase
         _dadosPublicosService = dadosPublicosService;
     }
 
-    [HttpPost]
+    [HttpPost("consultar")]
     public async Task<IActionResult> NovaPesquisa(ConsultaOnlineDto consulta)
     {
         var result = await _dadosPublicosService.GetDadosPrincipaisAsync(consulta.documento);
@@ -25,7 +26,7 @@ public class DadosPublicosController : ControllerBase
         //return Ok(ObjectId.GenerateNewId().ToString());
     }
     
-    [HttpGet]
+    [HttpGet("historico/lote")]
     public async Task<Pagina<DadosHistoricoLote>> HistoricoPesquisasLote([FromQuery]int pageNumber, [FromQuery]int pageSize)
     {
         var result = await _dadosPublicosService.GetHistoricoLote(pageNumber, pageSize);
@@ -33,10 +34,17 @@ public class DadosPublicosController : ControllerBase
     }
     
     
-    [HttpGet]
-    public async Task<Pagina<DadosHistorico>> HistoricoPesquisa([FromQuery]int pageNumber, [FromQuery]int pageSize)
+    [HttpGet("historico")]
+    public async Task<Pagina<DadosHistorico>> HistoricoPesquisa([FromQuery]int pageNumber, [FromQuery]int pageSize, [FromQuery]string? client, [FromQuery]string? document)
     {
-        var result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize);
+        var result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize, client, document);
+        return result;
+    }
+    
+    [HttpGet("visualizar")]
+    public async Task<ResultData> VisualizarPesquisa([FromQuery]string id)
+    {
+        var result = await _dadosPublicosService.GetPesquisa(id);
         return result;
     }
     

@@ -2,13 +2,13 @@ namespace Application.Dtos.Consulta;
 
 public class ConsultaResponseDto
 {
-    public Data Data { get; set; }
+    public ResultData Data { get; set; }
     public bool Success { get; set; }
     public object Errors { get; set; }
     public string Message { get; set; }
 }
 
-public class Data
+public class ResultData
 {
     public string Cnpj { get; set; }
     public string RazaoSocial { get; set; }

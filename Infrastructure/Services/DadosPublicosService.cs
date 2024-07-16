@@ -72,7 +72,7 @@ public class DadosPublicosService : IDadosPublicosService
     {
         var totalCount = await _mongoConsulta.GetTotalBatchCountAsync();
         
-        var results = await _mongoConsulta.GetAggregatedResultsAsync(pageNumber, pageSize);
+        var results = await _mongoConsulta.GetHistoricoLoteAsync(pageNumber, pageSize);
 
         return new Pagina<DadosHistoricoLote>
         {
@@ -83,11 +83,11 @@ public class DadosPublicosService : IDadosPublicosService
         };
     }
 
-    public async Task<Pagina<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize)
+    public async Task<Pagina<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize, string usuarioFilter, string cnpjFilter)
     {
-        var totalCount = await _mongoConsulta.GetTotalCountAsync();
+        var totalCount = await _mongoConsulta.GetTotalCountAsync(usuarioFilter, cnpjFilter);
         
-        var results = await _mongoConsulta.GetHistoricoPesquisa();
+        var results = await _mongoConsulta.GetHistoricoPesquisa(pageNumber, pageSize, usuarioFilter, cnpjFilter);
 
         return new Pagina<DadosHistorico>
         {
@@ -96,5 +96,12 @@ public class DadosPublicosService : IDadosPublicosService
             PageNumber = pageNumber,
             PageSize = pageSize
         };
+    }
+
+    public async Task<ResultData> GetPesquisa(string id)
+    {
+        var results = await _mongoConsulta.GetPesquisa(id);
+
+        return results.DadosRetorno.Data;
     }
 }
