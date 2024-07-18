@@ -30,8 +30,10 @@ public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
             DateTime dataFinal = DateTime.UtcNow;
             var resposta = new Resposta<ConsultaResponseDto>
             {
+                _id = null,
                 perfil = context.Message.perfil,
                 usuario = context.Message.usuario,
+                usuarioId = context.Message.usuarioId,
                 lote = context.Message.lote,
                 quantidade = context.Message.quantidade,
                 Date = context.Message.dataCadastro,

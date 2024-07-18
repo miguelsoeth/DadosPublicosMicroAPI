@@ -83,11 +83,12 @@ public class DadosPublicosService : IDadosPublicosService
         };
     }
 
-    public async Task<Pagina<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize, string usuarioFilter, string cnpjFilter)
+    public async Task<Pagina<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize, string usuarioFilter,
+        string cnpjFilter, string? userId)
     {
-        var totalCount = await _mongoConsulta.GetTotalCountAsync(usuarioFilter, cnpjFilter);
+        var totalCount = await _mongoConsulta.GetTotalCountAsync(usuarioFilter, cnpjFilter, userId);
         
-        var results = await _mongoConsulta.GetHistoricoPesquisa(pageNumber, pageSize, usuarioFilter, cnpjFilter);
+        var results = await _mongoConsulta.GetHistoricoPesquisa(pageNumber, pageSize, usuarioFilter, cnpjFilter, userId);
 
         return new Pagina<DadosHistorico>
         {

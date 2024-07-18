@@ -80,14 +80,17 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
         return aggregatedResults;
     }
 
-    public async Task<List<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize, string usuarioFilter, string cnpjFilter)
+    public async Task<List<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize, string usuarioFilter,
+        string cnpjFilter, string? userId)
     {
         var usuarioRegex = usuarioFilter != null ? new BsonRegularExpression(usuarioFilter, "i") : new BsonRegularExpression("");
+        var usuarioIdRegex = userId != null ? new BsonRegularExpression(userId, "i") : new BsonRegularExpression("");
         
         // Define the match stage based on provided filters
         var matchStage = new BsonDocument("$match", new BsonDocument
         {
-            { "usuario", new BsonDocument("$regex", usuarioRegex) },
+            { "usuarioId", new BsonDocument("$regex", usuarioIdRegex ?? "") },
+            { "usuario", new BsonDocument("$regex", usuarioRegex ?? "") },
             { "DadosRetorno.Data.Cnpj", new BsonDocument("$regex", cnpjFilter ?? "") }
         });
         var pipeline = new[]
@@ -157,13 +160,15 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
         return result["count"].ToInt64();
     }
     
-    public async Task<long> GetTotalCountAsync( string usuarioFilter, string cnpjFilter)
+    public async Task<long> GetTotalCountAsync(string usuarioFilter, string cnpjFilter, string? userId)
     {
         var usuarioRegex = usuarioFilter != null ? new BsonRegularExpression(usuarioFilter, "i") : new BsonRegularExpression("");
+        var usuarioIdRegex = new BsonRegularExpression(userId ?? "", "i");
 
         // Define the match stage based on provided filters
         var matchStage = new BsonDocument("$match", new BsonDocument
         {
+            { "usuarioId", new BsonDocument("$regex", usuarioIdRegex) },
             { "usuario", new BsonDocument("$regex", usuarioRegex) },
             { "DadosRetorno.Data.Cnpj", new BsonDocument("$regex", cnpjFilter ?? "") }
         });

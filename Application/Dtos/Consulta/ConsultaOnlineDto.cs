@@ -5,6 +5,7 @@ namespace Application.Dtos.Consulta;
 public class ConsultaOnlineDto
 {
     public string usuario { get; set; }
+    public string usuarioId { get; set; }
     public Guid venda { get; set; }
     public string? lote { get; set; }
     public int? quantidade { get; set; }

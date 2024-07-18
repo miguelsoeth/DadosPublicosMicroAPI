@@ -1,13 +1,16 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using Application.Dtos;
 using Application.Dtos.Consulta;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 
 namespace DadosPublicosMicroAPI.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/dados-publicos")]
 public class DadosPublicosController : ControllerBase
 {
@@ -23,7 +26,6 @@ public class DadosPublicosController : ControllerBase
     {
         var result = await _dadosPublicosService.GetDadosPrincipaisAsync(consulta.documento);
         return Ok(result);
-        //return Ok(ObjectId.GenerateNewId().ToString());
     }
     
     [HttpGet("historico/lote")]
@@ -37,7 +39,25 @@ public class DadosPublicosController : ControllerBase
     [HttpGet("historico")]
     public async Task<Pagina<DadosHistorico>> HistoricoPesquisa([FromQuery]int pageNumber, [FromQuery]int pageSize, [FromQuery]string? client, [FromQuery]string? document)
     {
-        var result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize, client, document);
+        var roles = User.Claims
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList();
+
+        Pagina<DadosHistorico> result;
+        if (roles.Contains("User"))
+        {
+            
+            var userId = User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize, userId, document, userId);
+        }
+        else
+        {
+            result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize, client, document, null);
+            
+        }
+        
         return result;
     }
     

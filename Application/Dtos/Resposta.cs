@@ -11,6 +11,7 @@ public class  Resposta<T> where T : class
     public string? _id { get; set; }
     public string? perfil { get; set; }
     public string? usuario { get; set; }
+    public string? usuarioId { get; set; }
     public string? lote { get; set; }
     public int? quantidade { get; set; }
     public DateTime? Date { get; set; }
