@@ -14,8 +14,14 @@
       "dotnetRunMessages": true,
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development",
-        "MONGO_CONNECTION": "mongodb://mongodb:mongodb@host.docker.internal:27017/",
-        "MONGO_DBNAME": "DADOS_PUBLICOS"
+        "MONGO_CONNECTION": "mongodb://localhost:27017/",
+        "MONGO_DBNAME": "DADOS_PUBLICOS",
+        "REDIS_CONNECTION": "host.docker.internal:6379",
+        "REDIS_EXPIRE_MINUTES": "59",               
+        "API_URL" : "https://qa-dados-publicos.deps.com.br/api/v1",
+        "LOGIN_URL": "https://qa-dados-publicos.deps.com.br/api/auth/login?api-version=1.0",
+        "LOGIN_USER": "deps",
+        "LOGIN_PWD": "deps"        
       }
     },
     "http": {
@@ -25,9 +31,15 @@
       "launchUrl": "swagger",
       "applicationUrl": "http://localhost:5100",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "MONGO_CONNECTION": "mongodb://mongodb:mongodb@host.docker.internal:27017/",
-        "MONGO_DBNAME": "DADOS_PUBLICOS"
+        "DOTNET_ENVIRONMENT": "Development",
+        "MONGO_CONNECTION": "mongodb://localhost:27017/",
+        "MONGO_DBNAME": "DADOS_PUBLICOS",
+        "REDIS_CONNECTION": "host.docker.internal:6379",
+        "REDIS_EXPIRE_MINUTES": "59",
+        "API_URL" : "https://qa-dados-publicos.deps.com.br/api/v1",
+        "LOGIN_URL": "https://qa-dados-publicos.deps.com.br/api/auth/login?api-version=1.0",
+        "LOGIN_USER": "deps",
+        "LOGIN_PWD": "deps"
       }
     },
     "https": {
@@ -37,9 +49,15 @@
       "launchUrl": "swagger",
       "applicationUrl": "https://localhost:5101;http://localhost:5100",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "MONGO_CONNECTION": "mongodb://mongodb:mongodb@host.docker.internal:27017/",
-        "MONGO_DBNAME": "DADOS_PUBLICOS"
+        "DOTNET_ENVIRONMENT": "Development",
+        "MONGO_CONNECTION": "mongodb://localhost:27017/",
+        "MONGO_DBNAME": "DADOS_PUBLICOS",
+        "REDIS_CONNECTION": "host.docker.internal:6379",
+        "REDIS_EXPIRE_MINUTES": "59",
+        "API_URL" : "https://qa-dados-publicos.deps.com.br/api/v1",
+        "LOGIN_URL": "https://qa-dados-publicos.deps.com.br/api/auth/login?api-version=1.0",
+        "LOGIN_USER": "deps",
+        "LOGIN_PWD": "deps"
       }
     },
     "IIS Express": {
@@ -47,7 +65,15 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Development",
+        "MONGO_CONNECTION": "mongodb://localhost:27017/",
+        "MONGO_DBNAME": "DADOS_PUBLICOS",
+        "REDIS_CONNECTION": "host.docker.internal:6379",
+        "REDIS_EXPIRE_MINUTES": "59",
+        "API_URL" : "https://qa-dados-publicos.deps.com.br/api/v1",
+        "LOGIN_URL": "https://qa-dados-publicos.deps.com.br/api/auth/login?api-version=1.0",
+        "LOGIN_USER": "deps",
+        "LOGIN_PWD": "deps"
       }
     }
   }

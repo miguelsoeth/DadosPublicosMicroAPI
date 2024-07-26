@@ -31,7 +31,27 @@ public class DadosPublicosController : ControllerBase
     [HttpGet("historico/lote")]
     public async Task<Pagina<DadosHistoricoLote>> HistoricoPesquisasLote([FromQuery]int pageNumber, [FromQuery]int pageSize)
     {
-        var result = await _dadosPublicosService.GetHistoricoLote(pageNumber, pageSize);
+        var roles = User.Claims
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList();
+
+        Pagina<DadosHistoricoLote> result;
+        
+        if (roles.Contains("User"))
+        {
+            
+            var userId = User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            
+            result = await _dadosPublicosService.GetHistoricoLote(pageNumber, pageSize, userId);
+        }
+        else
+        {
+            result = await _dadosPublicosService.GetHistoricoLote(pageNumber, pageSize, null);
+            
+        }
+        
         return result;
     }
     
@@ -50,7 +70,7 @@ public class DadosPublicosController : ControllerBase
             
             var userId = User.Claims
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize, userId, document, userId);
+            result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize, null, document, userId);
         }
         else
         {

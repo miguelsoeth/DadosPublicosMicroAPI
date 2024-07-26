@@ -3,6 +3,7 @@ using Application.Dtos.Consulta;
 using Application.Interfaces;
 using Domain.Config;
 using Infrastructure.Repository;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -26,6 +27,7 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.AddSingleton<IMongoRepository<ConsultaResponseDto>>(new MongoRepository<ConsultaResponseDto>("consultas"));
 builder.Services.AddSingleton<IDadosPublicosService, DadosPublicosService>();
+builder.Services.AddSingleton<ICacheService, CacheService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
@@ -57,7 +59,7 @@ builder.Services.AddSwaggerGen(c =>
     // Especifique o endpoint do Swagger JSON
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "DadosPublicos Microservice", Version = "v1" });
 });
-builder.Services.AddMassTransitConsumer<ConsumerOnlineService>("teste", 10);
+builder.Services.AddMassTransitConsumer<ConsumerOnlineService>("teste", 5);
 builder.Services.AddHostedService<Worker>();
 
 builder.Services.AddAuthentication(options =>

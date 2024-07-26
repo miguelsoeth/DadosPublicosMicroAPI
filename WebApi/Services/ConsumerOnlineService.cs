@@ -22,7 +22,7 @@ public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
         DateTime dataInicio = DateTime.UtcNow;
         var result = await _dadosPublicosService.GetDadosPrincipaisAsync(context.Message.documento);
         var random = new Random();
-        await Task.Delay(random.Next(5) * 1000);
+        await Task.Delay(random.Next(8) * 1000);
         Console.WriteLine("Mensagem processada");
         
         if (result.Success)

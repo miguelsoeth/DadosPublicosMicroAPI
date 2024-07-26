@@ -14,35 +14,38 @@ using Newtonsoft.Json;
 public class DadosPublicosService : IDadosPublicosService
 {
     private readonly IMongoRepository<ConsultaResponseDto> _mongoConsulta;
+    private readonly ICacheService _cacheService;
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl;
-    private string _token;
+    private readonly string _loginUrl;
+    private readonly object _loginData;
 
-    public DadosPublicosService(IMongoRepository<ConsultaResponseDto> mongoConsulta)
+    public DadosPublicosService(IMongoRepository<ConsultaResponseDto> mongoConsulta, ICacheService cacheService)
     {
         _mongoConsulta = mongoConsulta;
+        _cacheService = cacheService;
         _httpClient = new HttpClient();
-        _baseUrl = "https://qa-dados-publicos.deps.com.br/api/v1";
+        
+        _loginData = new
+        {
+            username = Environment.GetEnvironmentVariable("LOGIN_USER"),
+            pwd = Environment.GetEnvironmentVariable("LOGIN_PWD")
+        };
+        _loginUrl = Environment.GetEnvironmentVariable("LOGIN_URL");
+        _baseUrl = Environment.GetEnvironmentVariable("API_URL");
     }
 
     public async Task<bool> LoginAsync()
     {
-        var loginUrl = "https://qa-dados-publicos.deps.com.br/api/auth/login?api-version=1.0";
-        var loginData = new
-        {
-            username = "deps",
-            password = "deps"
-        };
+        var content = new StringContent(JsonConvert.SerializeObject(_loginData), Encoding.UTF8, "application/json");
 
-        var content = new StringContent(JsonConvert.SerializeObject(loginData), Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync(loginUrl, content);
+        var response = await _httpClient.PostAsync(_loginUrl, content);
         Console.WriteLine("ENVIADO REQUISIÇÃO PARA ENDPOINT DE LOGIN");
 
         if (response.IsSuccessStatusCode)
         {
             var responseData = JsonConvert.DeserializeObject<LoginResponse>(await response.Content.ReadAsStringAsync());
-            _token = responseData.Data.Token;
+            await _cacheService.SetData("login_token", responseData.Data.Token);
             return true;
         }
 
@@ -51,28 +54,40 @@ public class DadosPublicosService : IDadosPublicosService
 
     public async Task<ConsultaResponseDto> GetDadosPrincipaisAsync(string documento)
     {
-        if (string.IsNullOrEmpty(_token))
+        //Console.WriteLine("****************BASE URL"+_baseUrl);
+        string token = _cacheService.GetData<string>("login_token");
+        
+        if (string.IsNullOrEmpty(token))
         {
             if (!await LoginAsync())
             {
                 throw new Exception("Unable to login.");
             }
+            token = _cacheService.GetData<string>("login_token");
         }
 
-        var requestUrl = $"{_baseUrl}/pessoas/dados-principais?documento={documento}";
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
-
-        var response = await _httpClient.GetAsync(requestUrl);
+        var requestUrl = $"{_baseUrl}/pessoas?documento={documento}";
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = new HttpResponseMessage();
+        try
+        {
+            response = await _httpClient.GetAsync(requestUrl);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
         
         return JsonConvert.DeserializeObject<ConsultaResponseDto>(await response.Content.ReadAsStringAsync());
         
     }
     
-    public async Task<Pagina<DadosHistoricoLote>> GetHistoricoLote(int pageNumber, int pageSize)
+    public async Task<Pagina<DadosHistoricoLote>> GetHistoricoLote(int pageNumber, int pageSize, string? userId)
     {
-        var totalCount = await _mongoConsulta.GetTotalBatchCountAsync();
+        var totalCount = await _mongoConsulta.GetTotalBatchCountAsync(userId);
         
-        var results = await _mongoConsulta.GetHistoricoLoteAsync(pageNumber, pageSize);
+        var results = await _mongoConsulta.GetHistoricoLoteAsync(pageNumber, pageSize, userId);
 
         return new Pagina<DadosHistoricoLote>
         {

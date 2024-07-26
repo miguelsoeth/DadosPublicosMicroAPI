@@ -33,11 +33,17 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
             .FirstOrDefaultAsync();
     }
     
-    public async Task<List<DadosHistoricoLote>> GetHistoricoLoteAsync(int pageNumber, int pageSize)
+    public async Task<List<DadosHistoricoLote>> GetHistoricoLoteAsync(int pageNumber, int pageSize, string? userId)
     {
+        var usuarioIdRegex = new BsonRegularExpression(userId ?? "", "i");
+        
         var pipeline = new[]
         {
-            new BsonDocument("$match", new BsonDocument("lote", new BsonDocument("$ne", BsonNull.Value))),
+            new BsonDocument("$match", new BsonDocument
+            {
+                { "lote", new BsonDocument("$ne", BsonNull.Value) },
+                { "usuarioId", usuarioIdRegex }
+            }),
             new BsonDocument("$group", new BsonDocument
             {
                 { "_id", "$lote" },
@@ -134,19 +140,21 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
         return result;
     }
 
-    public async Task<long> GetTotalBatchCountAsync()
+    public async Task<long> GetTotalBatchCountAsync(string? userId)
     {
+        var usuarioIdRegex = new BsonRegularExpression(userId ?? "", "i");
+        
         var pipeline = new[]
         {
             BsonDocument.Parse(@"{
-            $match: { lote: { $ne: null } }
-        }"),
+                $match: { lote: { $ne: null }, usuarioId: { $regex: """ + userId + @""" } }
+            }"),
             BsonDocument.Parse(@"{
-            $group: { _id: ""$lote"", count: { $sum: 1 } }
-        }"),
+                $group: { _id: ""$lote"", count: { $sum: 1 } }
+            }"),
             BsonDocument.Parse(@"{
-            $count: ""count""
-        }")
+                $count: ""count""
+            }")
         };
 
         var aggregateCursor = await _collection.AggregateAsync<BsonDocument>(pipeline);
@@ -162,8 +170,9 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
     
     public async Task<long> GetTotalCountAsync(string usuarioFilter, string cnpjFilter, string? userId)
     {
-        var usuarioRegex = usuarioFilter != null ? new BsonRegularExpression(usuarioFilter, "i") : new BsonRegularExpression("");
+        //var usuarioRegex = usuarioFilter != null ? new BsonRegularExpression(usuarioFilter, "i") : new BsonRegularExpression("");
         var usuarioIdRegex = new BsonRegularExpression(userId ?? "", "i");
+        var usuarioRegex = new BsonRegularExpression(usuarioFilter ?? "", "i");
 
         // Define the match stage based on provided filters
         var matchStage = new BsonDocument("$match", new BsonDocument
