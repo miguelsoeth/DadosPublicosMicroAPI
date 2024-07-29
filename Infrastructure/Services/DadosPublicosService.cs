@@ -114,10 +114,10 @@ public class DadosPublicosService : IDadosPublicosService
         };
     }
 
-    public async Task<ResultData> GetPesquisa(string id)
+    public async Task<ConsultaResponseDto> GetPesquisa(string id)
     {
         var results = await _mongoConsulta.GetPesquisa(id);
 
-        return results.DadosRetorno.Data;
+        return results.DadosRetorno;
     }
 }

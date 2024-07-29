@@ -3,6 +3,7 @@ using Application.Dtos;
 using Application.Dtos.Consulta;
 using Application.Interfaces;
 using MassTransit;
+using Newtonsoft.Json.Linq;
 
 namespace WebApi.Services;
 
@@ -21,11 +22,19 @@ public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
     {
         DateTime dataInicio = DateTime.UtcNow;
         var result = await _dadosPublicosService.GetDadosPrincipaisAsync(context.Message.documento);
+        
+        
+            
+        if (result.Errors is JArray jArray)
+        {
+            result.Errors = jArray.ToObject<List<string>>();
+        }
+        
         var random = new Random();
         await Task.Delay(random.Next(8) * 1000);
         Console.WriteLine("Mensagem processada");
         
-        if (result.Success)
+        if (result.Success || context.Message.lote != null)
         {
             DateTime dataFinal = DateTime.UtcNow;
             var resposta = new Resposta<ConsultaResponseDto>
@@ -44,7 +53,7 @@ public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
     
             await _mongoConsulta.CreateAsync(resposta);
         }
-
+        
         await context.RespondAsync(result);
     }
 }

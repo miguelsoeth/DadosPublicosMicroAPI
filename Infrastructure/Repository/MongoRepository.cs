@@ -19,6 +19,26 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
         var mongoClient = new MongoClient(Environment.GetEnvironmentVariable("MONGO_CONNECTION"));
         var mongoDatabase = mongoClient.GetDatabase(Environment.GetEnvironmentVariable("MONGO_DBNAME"));
         _collection = mongoDatabase.GetCollection<Resposta<T>>(collectionName);
+        
+        CreateDefaultIndex();
+    }
+    
+    private void CreateDefaultIndex()
+    {
+        var loteIndexKeys = Builders<Resposta<T>>.IndexKeys.Ascending(x => x.lote);
+        var loteIndexOptions = new CreateIndexOptions { Name = "LoteIndex" };
+        var loteIndexModel = new CreateIndexModel<Resposta<T>>(loteIndexKeys, loteIndexOptions);
+        _collection.Indexes.CreateOne(loteIndexModel);
+
+        var usuarioIdIndexKeys = Builders<Resposta<T>>.IndexKeys.Ascending(x => x.usuarioId);
+        var usuarioIdIndexOptions = new CreateIndexOptions { Name = "UsuarioIdIndex" };
+        var usuarioIdIndexModel = new CreateIndexModel<Resposta<T>>(usuarioIdIndexKeys, usuarioIdIndexOptions);
+        _collection.Indexes.CreateOne(usuarioIdIndexModel);
+
+        var DateIndexKeys = Builders<Resposta<T>>.IndexKeys.Descending(x => x.Date);
+        var DateIndexOptions = new CreateIndexOptions { Name = "DateIndex" };
+        var DateIndexModel = new CreateIndexModel<Resposta<T>>(DateIndexKeys, DateIndexOptions);
+        _collection.Indexes.CreateOne(DateIndexModel);
     }
     
     public async Task CreateAsync(Resposta<T> resposta)

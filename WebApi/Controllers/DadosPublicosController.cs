@@ -15,7 +15,7 @@ namespace DadosPublicosMicroAPI.Controllers;
 public class DadosPublicosController : ControllerBase
 {
     private readonly IDadosPublicosService _dadosPublicosService;
-    
+
     public DadosPublicosController(IDadosPublicosService dadosPublicosService)
     {
         _dadosPublicosService = dadosPublicosService;
@@ -27,9 +27,10 @@ public class DadosPublicosController : ControllerBase
         var result = await _dadosPublicosService.GetDadosPrincipaisAsync(consulta.documento);
         return Ok(result);
     }
-    
+
     [HttpGet("historico/lote")]
-    public async Task<Pagina<DadosHistoricoLote>> HistoricoPesquisasLote([FromQuery]int pageNumber, [FromQuery]int pageSize)
+    public async Task<Pagina<DadosHistoricoLote>> HistoricoPesquisasLote([FromQuery] int pageNumber,
+        [FromQuery] int pageSize)
     {
         var roles = User.Claims
             .Where(c => c.Type == ClaimTypes.Role)
@@ -37,27 +38,26 @@ public class DadosPublicosController : ControllerBase
             .ToList();
 
         Pagina<DadosHistoricoLote> result;
-        
+
         if (roles.Contains("User"))
         {
-            
             var userId = User.Claims
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            
+
             result = await _dadosPublicosService.GetHistoricoLote(pageNumber, pageSize, userId);
         }
         else
         {
             result = await _dadosPublicosService.GetHistoricoLote(pageNumber, pageSize, null);
-            
         }
-        
+
         return result;
     }
-    
-    
+
+
     [HttpGet("historico")]
-    public async Task<Pagina<DadosHistorico>> HistoricoPesquisa([FromQuery]int pageNumber, [FromQuery]int pageSize, [FromQuery]string? client, [FromQuery]string? document)
+    public async Task<Pagina<DadosHistorico>> HistoricoPesquisa([FromQuery] int pageNumber, [FromQuery] int pageSize,
+        [FromQuery] string? client, [FromQuery] string? document)
     {
         var roles = User.Claims
             .Where(c => c.Type == ClaimTypes.Role)
@@ -67,7 +67,6 @@ public class DadosPublicosController : ControllerBase
         Pagina<DadosHistorico> result;
         if (roles.Contains("User"))
         {
-            
             var userId = User.Claims
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize, null, document, userId);
@@ -75,36 +74,15 @@ public class DadosPublicosController : ControllerBase
         else
         {
             result = await _dadosPublicosService.GetHistoricoPesquisa(pageNumber, pageSize, client, document, null);
-            
         }
-        
+
         return result;
     }
-    
+
     [HttpGet("visualizar")]
-    public async Task<ResultData> VisualizarPesquisa([FromQuery]string id)
+    public async Task<ConsultaResponseDto> VisualizarPesquisa([FromQuery] string id)
     {
         var result = await _dadosPublicosService.GetPesquisa(id);
         return result;
     }
-    
 }
-
-#region ALPHA 0.0.1
-
-/*[HttpPost]
-public async Task<IActionResult> NovaPesquisaOnline(ConsultaOnlineDto consulta)
-{
-    var resposta = new Resposta<ConsultaOnlineDto>();
-    resposta.Documento = consulta.documento;
-    _mongoConsultaOnline.CreateAsync(resposta);
-    return Ok(consulta);
-}
-    
-[HttpGet]
-public async Task<Resposta<ConsultaOnlineDto>> BuscarPesquisaOnline([FromQuery] string documento)
-{
-    return await _mongoConsultaOnline.GetLastAsync(documento);
-}*/
-
-#endregion

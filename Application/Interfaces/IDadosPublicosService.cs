@@ -13,5 +13,5 @@ public interface IDadosPublicosService
     Task<Pagina<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize, string usuarioFilter,
         string cnpjFilter, string? userId);
     
-    Task<ResultData> GetPesquisa(string id);
+    Task<ConsultaResponseDto> GetPesquisa(string id);
 }

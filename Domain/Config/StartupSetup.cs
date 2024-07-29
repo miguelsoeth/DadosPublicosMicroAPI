@@ -21,7 +21,7 @@ public static class StartupSetup
         });
     }
     
-    public static void AddMassTransitConsumer<T>(this IServiceCollection services, string queue, int limit)
+    public static void AddMassTransitConsumer<T>(this IServiceCollection services, string queue1, string queue2, int limit)
         where T : class, IConsumer
     {
         services.AddMassTransit(x =>
@@ -36,7 +36,13 @@ public static class StartupSetup
                     h.Password("rabbitmq");
                 });
 
-                cfg.ReceiveEndpoint($"{queue}", e =>
+                cfg.ReceiveEndpoint($"{queue1}", e =>
+                {
+                    e.ConfigureConsumer<T>(context);
+                    e.ConcurrentMessageLimit = limit;
+                });
+                
+                cfg.ReceiveEndpoint($"{queue2}", e =>
                 {
                     e.ConfigureConsumer<T>(context);
                     e.ConcurrentMessageLimit = limit;

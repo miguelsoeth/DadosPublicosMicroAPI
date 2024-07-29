@@ -4,6 +4,7 @@ using Application.Interfaces;
 using Domain.Config;
 using Infrastructure.Repository;
 using Infrastructure.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -59,7 +60,8 @@ builder.Services.AddSwaggerGen(c =>
     // Especifique o endpoint do Swagger JSON
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "DadosPublicos Microservice", Version = "v1" });
 });
-builder.Services.AddMassTransitConsumer<ConsumerOnlineService>("teste", 5);
+builder.Services.AddMassTransitConsumer<ConsumerOnlineService>("fila-online", "fila-lote", 5);
+
 builder.Services.AddHostedService<Worker>();
 
 builder.Services.AddAuthentication(options =>
