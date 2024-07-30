@@ -26,7 +26,8 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container.
-builder.Services.AddSingleton<IMongoRepository<ConsultaResponseDto>>(new MongoRepository<ConsultaResponseDto>("consultas"));
+builder.Services.AddSingleton<IMongoRepository<ConsultaResponseDto>>(
+    new MongoRepository<ConsultaResponseDto>("consultas"));
 builder.Services.AddSingleton<IDadosPublicosService, DadosPublicosService>();
 builder.Services.AddSingleton<ICacheService, CacheService>();
 
@@ -85,7 +86,6 @@ builder.Services.AddAuthentication(options =>
     {
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine(context.Request.Headers.Authorization);
             Console.WriteLine(context.Exception.Message);
             return Task.CompletedTask;
         }

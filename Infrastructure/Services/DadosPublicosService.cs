@@ -25,7 +25,7 @@ public class DadosPublicosService : IDadosPublicosService
         _mongoConsulta = mongoConsulta;
         _cacheService = cacheService;
         _httpClient = new HttpClient();
-        
+
         _loginData = new
         {
             username = Environment.GetEnvironmentVariable("LOGIN_USER"),
@@ -40,7 +40,6 @@ public class DadosPublicosService : IDadosPublicosService
         var content = new StringContent(JsonConvert.SerializeObject(_loginData), Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync(_loginUrl, content);
-        Console.WriteLine("ENVIADO REQUISIÇÃO PARA ENDPOINT DE LOGIN");
 
         if (response.IsSuccessStatusCode)
         {
@@ -54,15 +53,15 @@ public class DadosPublicosService : IDadosPublicosService
 
     public async Task<ConsultaResponseDto> GetDadosPrincipaisAsync(string documento)
     {
-        //Console.WriteLine("****************BASE URL"+_baseUrl);
         string token = _cacheService.GetData<string>("login_token");
-        
+
         if (string.IsNullOrEmpty(token))
         {
             if (!await LoginAsync())
             {
                 throw new Exception("Unable to login.");
             }
+
             token = _cacheService.GetData<string>("login_token");
         }
 
@@ -78,15 +77,14 @@ public class DadosPublicosService : IDadosPublicosService
             Console.WriteLine(e);
             throw;
         }
-        
+
         return JsonConvert.DeserializeObject<ConsultaResponseDto>(await response.Content.ReadAsStringAsync());
-        
     }
-    
+
     public async Task<Pagina<DadosHistoricoLote>> GetHistoricoLote(int pageNumber, int pageSize, string? userId)
     {
         var totalCount = await _mongoConsulta.GetTotalBatchCountAsync(userId);
-        
+
         var results = await _mongoConsulta.GetHistoricoLoteAsync(pageNumber, pageSize, userId);
 
         return new Pagina<DadosHistoricoLote>
@@ -102,8 +100,9 @@ public class DadosPublicosService : IDadosPublicosService
         string cnpjFilter, string? userId)
     {
         var totalCount = await _mongoConsulta.GetTotalCountAsync(usuarioFilter, cnpjFilter, userId);
-        
-        var results = await _mongoConsulta.GetHistoricoPesquisa(pageNumber, pageSize, usuarioFilter, cnpjFilter, userId);
+
+        var results =
+            await _mongoConsulta.GetHistoricoPesquisa(pageNumber, pageSize, usuarioFilter, cnpjFilter, userId);
 
         return new Pagina<DadosHistorico>
         {

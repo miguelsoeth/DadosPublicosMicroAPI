@@ -12,7 +12,8 @@ public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
     private readonly IMongoRepository<ConsultaResponseDto> _mongoConsulta;
     private readonly IDadosPublicosService _dadosPublicosService;
 
-    public ConsumerOnlineService(IDadosPublicosService dadosPublicosService, IMongoRepository<ConsultaResponseDto> mongoConsulta)
+    public ConsumerOnlineService(IDadosPublicosService dadosPublicosService,
+        IMongoRepository<ConsultaResponseDto> mongoConsulta)
     {
         _dadosPublicosService = dadosPublicosService;
         _mongoConsulta = mongoConsulta;
@@ -22,18 +23,16 @@ public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
     {
         DateTime dataInicio = DateTime.UtcNow;
         var result = await _dadosPublicosService.GetDadosPrincipaisAsync(context.Message.documento);
-        
-        
-            
+
+
         if (result.Errors is JArray jArray)
         {
             result.Errors = jArray.ToObject<List<string>>();
         }
-        
+
         var random = new Random();
         await Task.Delay(random.Next(8) * 1000);
-        Console.WriteLine("Mensagem processada");
-        
+
         if (result.Success || context.Message.lote != null)
         {
             DateTime dataFinal = DateTime.UtcNow;
@@ -50,10 +49,10 @@ public class ConsumerOnlineService : IConsumer<ConsultaOnlineDto>
                 dataFinal = dataFinal,
                 DadosRetorno = result
             };
-    
+
             await _mongoConsulta.CreateAsync(resposta);
         }
-        
+
         await context.RespondAsync(result);
     }
 }

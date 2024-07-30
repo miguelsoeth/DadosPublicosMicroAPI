@@ -13,16 +13,16 @@ namespace Infrastructure.Repository;
 public class MongoRepository<T> : IMongoRepository<T> where T : class
 {
     private readonly IMongoCollection<Resposta<T>> _collection;
-    
+
     public MongoRepository(string collectionName)
     {
         var mongoClient = new MongoClient(Environment.GetEnvironmentVariable("MONGO_CONNECTION"));
         var mongoDatabase = mongoClient.GetDatabase(Environment.GetEnvironmentVariable("MONGO_DBNAME"));
         _collection = mongoDatabase.GetCollection<Resposta<T>>(collectionName);
-        
+
         CreateDefaultIndex();
     }
-    
+
     private void CreateDefaultIndex()
     {
         var loteIndexKeys = Builders<Resposta<T>>.IndexKeys.Ascending(x => x.lote);
@@ -40,7 +40,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
         var DateIndexModel = new CreateIndexModel<Resposta<T>>(DateIndexKeys, DateIndexOptions);
         _collection.Indexes.CreateOne(DateIndexModel);
     }
-    
+
     public async Task CreateAsync(Resposta<T> resposta)
     {
         await _collection.InsertOneAsync(resposta);
@@ -52,11 +52,11 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
             .SortByDescending(x => x.Date)
             .FirstOrDefaultAsync();
     }
-    
+
     public async Task<List<DadosHistoricoLote>> GetHistoricoLoteAsync(int pageNumber, int pageSize, string? userId)
     {
         var usuarioIdRegex = new BsonRegularExpression(userId ?? "", "i");
-        
+
         var pipeline = new[]
         {
             new BsonDocument("$match", new BsonDocument
@@ -85,12 +85,11 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
             new BsonDocument("$limit", pageSize)
         };
 
-        var aggregateOptions = new AggregateOptions { AllowDiskUse = true }; // Ensure large datasets can be processed
+        var aggregateOptions = new AggregateOptions { AllowDiskUse = true };
 
         var cursor = await _collection.AggregateAsync<BsonDocument>(pipeline, aggregateOptions);
         var result = await cursor.ToListAsync();
 
-        // Assuming that DadosHistorico class has properties matching the fields in the pipeline result
         var aggregatedResults = result.Select(doc => new DadosHistoricoLote
         {
             Id = doc["_id"].AsString,
@@ -109,9 +108,11 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
     public async Task<List<DadosHistorico>> GetHistoricoPesquisa(int pageNumber, int pageSize, string usuarioFilter,
         string cnpjFilter, string? userId)
     {
-        var usuarioRegex = usuarioFilter != null ? new BsonRegularExpression(usuarioFilter, "i") : new BsonRegularExpression("");
+        var usuarioRegex = usuarioFilter != null
+            ? new BsonRegularExpression(usuarioFilter, "i")
+            : new BsonRegularExpression("");
         var usuarioIdRegex = userId != null ? new BsonRegularExpression(userId, "i") : new BsonRegularExpression("");
-        
+
         // Define the match stage based on provided filters
         var matchStage = new BsonDocument("$match", new BsonDocument
         {
@@ -135,12 +136,11 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
             new BsonDocument("$limit", pageSize)
         };
 
-        var aggregateOptions = new AggregateOptions { AllowDiskUse = true }; // Ensure large datasets can be processed
+        var aggregateOptions = new AggregateOptions { AllowDiskUse = true };
 
         var cursor = await _collection.AggregateAsync<BsonDocument>(pipeline, aggregateOptions);
         var result = await cursor.ToListAsync();
 
-        // Assuming that DadosHistorico class has properties matching the fields in the pipeline result
         var aggregatedResults = result.Select(doc => new DadosHistorico
         {
             _id = doc["_id"].AsObjectId.ToString(),
@@ -152,7 +152,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
 
         return aggregatedResults;
     }
-    
+
     public async Task<Resposta<T>> GetPesquisa(string id)
     {
         var result = await _collection.Find(x => x._id == id).FirstOrDefaultAsync();
@@ -163,7 +163,7 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
     public async Task<long> GetTotalBatchCountAsync(string? userId)
     {
         var usuarioIdRegex = new BsonRegularExpression(userId ?? "", "i");
-        
+
         var pipeline = new[]
         {
             BsonDocument.Parse(@"{
@@ -187,27 +187,26 @@ public class MongoRepository<T> : IMongoRepository<T> where T : class
 
         return result["count"].ToInt64();
     }
-    
+
     public async Task<long> GetTotalCountAsync(string usuarioFilter, string cnpjFilter, string? userId)
     {
         //var usuarioRegex = usuarioFilter != null ? new BsonRegularExpression(usuarioFilter, "i") : new BsonRegularExpression("");
         var usuarioIdRegex = new BsonRegularExpression(userId ?? "", "i");
         var usuarioRegex = new BsonRegularExpression(usuarioFilter ?? "", "i");
 
-        // Define the match stage based on provided filters
         var matchStage = new BsonDocument("$match", new BsonDocument
         {
             { "usuarioId", new BsonDocument("$regex", usuarioIdRegex) },
             { "usuario", new BsonDocument("$regex", usuarioRegex) },
             { "DadosRetorno.Data.Cnpj", new BsonDocument("$regex", cnpjFilter ?? "") }
         });
-        
+
         var totalCountPipeline = new[]
         {
             matchStage,
             new BsonDocument("$count", "total")
         };
-        
+
         var aggregateOptions = new AggregateOptions { AllowDiskUse = true };
         var totalCountCursor = await _collection.AggregateAsync<BsonDocument>(totalCountPipeline, aggregateOptions);
         var totalCountResult = await totalCountCursor.FirstOrDefaultAsync();

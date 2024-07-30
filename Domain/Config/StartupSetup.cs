@@ -10,10 +10,10 @@ public static class StartupSetup
         {
             x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(config =>
             {
-                config.Host(new Uri("rabbitmq://localhost"), h =>
+                config.Host(new Uri(Environment.GetEnvironmentVariable("RABBITMQ_CONNECTION")), h =>
                 {
-                    h.Username("rabbitmq");
-                    h.Password("rabbitmq");
+                    h.Username(Environment.GetEnvironmentVariable("RABBITMQ_USER"));
+                    h.Password(Environment.GetEnvironmentVariable("RABBITMQ_PWD"));
                 });
 
                 config.ConfigureEndpoints(provider);
@@ -30,10 +30,10 @@ public static class StartupSetup
 
             x.UsingRabbitMq((context, cfg) =>
             {
-                cfg.Host(new Uri("rabbitmq://localhost"), h =>
+                cfg.Host(new Uri(Environment.GetEnvironmentVariable("RABBITMQ_CONNECTION")), h =>
                 {
-                    h.Username("rabbitmq");
-                    h.Password("rabbitmq");
+                    h.Username(Environment.GetEnvironmentVariable("RABBITMQ_USER"));
+                    h.Password(Environment.GetEnvironmentVariable("RABBITMQ_PWD"));
                 });
 
                 cfg.ReceiveEndpoint($"{queue1}", e =>
