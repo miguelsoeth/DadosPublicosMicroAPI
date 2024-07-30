@@ -12,7 +12,15 @@ using WebApi;
 using WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+// Configure Kestrel to use HTTP and disable HTTPS
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(80);
+    // options.ListenAnyIP(5001, listenOptions => listenOptions.UseHttps());
+});
 var configuration = builder.Configuration;
+
+
 
 builder.Services.AddCors(options =>
 {
@@ -100,6 +108,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.UseCors("AllowAll");
 }
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
